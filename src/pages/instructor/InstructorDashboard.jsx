@@ -1,16 +1,37 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link, Navigate } from 'react-router-dom';
 import { BookOpen, Users, DollarSign, PlusCircle } from 'lucide-react';
+import { db } from '../../firebase/config';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 const InstructorDashboard = () => {
     const { user } = useAuth();
+    const [courses, setCourses] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Mock Data
+    useEffect(() => {
+        if (user && user.role === 'instructor') {
+            // Matching by name for this demo since seed data uses names
+            const q = query(collection(db, "courses"), where("instructor", "==", user.name || ""));
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+                const courseData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setCourses(courseData);
+                setLoading(false);
+            });
+            return () => unsubscribe();
+        }
+    }, [user]);
+
+    // Calculate Stats
+    const totalStudents = courses.reduce((acc, curr) => acc + (curr.totalStudents || 0), 0); // Mock field if not present
+    // Assuming revenue is a calculation
+    const totalRevenue = courses.length * 1500; // Mock calculation
+
     const stats = [
-        { label: 'Active Courses', value: '4', icon: BookOpen, color: '#3b82f6' },
-        { label: 'Total Students', value: '1,204', icon: Users, color: '#10b981' },
-        { label: 'Total Revenue', value: '$12,450', icon: DollarSign, color: '#f59e0b' },
+        { label: 'Active Courses', value: courses.length.toString(), icon: BookOpen, color: '#7c3aed' },
+        { label: 'Total Students', value: totalStudents.toString(), icon: Users, color: '#10b981' },
+        { label: 'Total Revenue', value: `$${totalRevenue}`, icon: DollarSign, color: '#f59e0b' },
     ];
 
     if (!user || user.role !== 'instructor') {
@@ -50,8 +71,22 @@ const InstructorDashboard = () => {
             </div>
 
             <div className="card">
-                <h3 style={{ marginBottom: '1.5rem' }}>Your Recently Active Courses</h3>
-                <p style={{ color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>No courses active right now (Mock).</p>
+                <h3 style={{ marginBottom: '1.5rem' }}>Your Active Courses</h3>
+                {courses.length > 0 ? (
+                    <div style={{ display: 'grid', gap: '1rem' }}>
+                        {courses.map(course => (
+                            <div key={course.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--color-border)' }}>
+                                <div>
+                                    <div style={{ fontWeight: '600' }}>{course.title}</div>
+                                    <div style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)' }}>Status: {course.status}</div>
+                                </div>
+                                <div style={{ fontWeight: '700', color: 'var(--color-primary)' }}>${course.price}</div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p style={{ color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>No active courses found.</p>
+                )}
             </div>
         </div>
     );

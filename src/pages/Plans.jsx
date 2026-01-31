@@ -1,36 +1,39 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { mockPlans } from '../data/mockData';
 import { Check } from 'lucide-react';
 
 const Plans = () => {
+    const navigate = useNavigate();
     return (
         <div className="container" style={{ padding: 'var(--spacing-2xl) 0' }}>
-            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
                 <span style={{
                     display: 'inline-block',
-                    padding: '0.5rem 1rem',
+                    padding: '0.5rem 1.25rem',
                     borderRadius: 'var(--radius-full)',
-                    background: 'rgba(99, 102, 241, 0.1)',
+                    background: 'rgba(124, 58, 237, 0.1)',
                     color: 'var(--color-primary)',
-                    fontSize: '0.875rem',
+                    fontSize: '0.9rem',
                     fontWeight: '600',
-                    marginBottom: '1rem'
+                    marginBottom: '1.5rem',
+                    border: '1px solid rgba(124, 58, 237, 0.2)'
                 }}>
                     Pricing Plans
                 </span>
-                <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '1rem', lineHeight: 1.1 }}>
+                <h1 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '1.25rem', lineHeight: 1.1 }}>
                     Choose the Perfect <span className="text-gradient">Plan for You</span>
                 </h1>
                 <p style={{ fontSize: '1.25rem', color: 'var(--color-text-secondary)' }}>Unlock the full potential of Niche Learning</p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem', maxWidth: '1000px', margin: '0 auto' }}>
                 {mockPlans.map(plan => (
                     <div
                         key={plan.id}
                         className="card"
                         style={{
-                            padding: '2rem',
+                            padding: '2.5rem',
                             display: 'flex',
                             flexDirection: 'column',
                             position: 'relative',
@@ -92,8 +95,9 @@ const Plans = () => {
                         </ul>
 
                         <button
+                            onClick={() => navigate('/register')}
                             className={`btn ${plan.recommended ? 'btn-primary' : 'btn-outline'}`}
-                            style={{ w: '100%', padding: '1rem' }}
+                            style={{ width: '100%', padding: '1rem' }}
                         >
                             Get Started
                         </button>

@@ -1,29 +1,57 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { courses } from '../data/courses';
 import { useAuth } from '../context/AuthContext';
-import { CreditCard, CheckCircle } from 'lucide-react';
+import { CreditCard, CheckCircle, AlertCircle } from 'lucide-react';
 
 const Enroll = () => {
     const { id } = useParams();
     const course = courses.find(c => c.id === parseInt(id));
-    const { user, enroll } = useAuth();
+    const { user, enroll, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
 
-    if (!course) return <div>Course not found</div>;
+    useEffect(() => {
+        if (!authLoading && !user) {
+            navigate('/login');
+        }
+    }, [user, authLoading, navigate]);
+
+    if (authLoading) return <div style={{ padding: '4rem', textAlign: 'center' }}>Loading...</div>;
+
+    if (!course) return (
+        <div className="container" style={{ padding: '4rem 0', textAlign: 'center' }}>
+            <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}>
+                <AlertCircle size={48} color="#ef4444" />
+            </div>
+            <h2 style={{ marginBottom: '1rem' }}>Course Not Found</h2>
+            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '2rem' }}>The course you are looking for does not exist or has been removed.</p>
+            <Link to="/courses" className="btn btn-primary">Browse Courses</Link>
+        </div>
+    );
 
     const handlePayment = () => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+
         setLoading(true);
         // Mock payment delay
-        setTimeout(() => {
-            enroll(course.id);
-            setSuccess(true);
-            setLoading(false);
-            setTimeout(() => {
-                navigate('/dashboard');
-            }, 2000);
+        setTimeout(async () => {
+            try {
+                await enroll(course.id);
+                setSuccess(true);
+                setTimeout(() => {
+                    navigate('/dashboard');
+                }, 2000);
+            } catch (error) {
+                console.error("Enrollment failed", error);
+                alert("Enrollment failed. Please try again or check your connection.");
+            } finally {
+                setLoading(false);
+            }
         }, 1500);
     };
 

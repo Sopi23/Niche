@@ -1,52 +1,30 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, User } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { Mail, Lock, BookOpen } from 'lucide-react';
 
-const Login = () => {
+const InstructorLogin = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login, resetPassword } = useAuth();
+    const { login } = useAuth();
     const navigate = useNavigate();
 
-    const handleLogin = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setSuccess('');
         setLoading(true);
         try {
             const { role } = await login(email, password);
-            if (role === 'student' || role === undefined) {
-                navigate('/dashboard');
+            if (role === 'instructor') {
+                navigate('/instructor/dashboard');
             } else {
-                if (role === 'instructor') navigate('/instructor/dashboard');
-                else if (role === 'admin') navigate('/admin/dashboard');
-                else navigate('/');
+                setError('Access denied. This login is for Instructors only.');
+                // Optional: logout if strict
             }
         } catch (err) {
-            setError('Failed to login. Please check your email and password.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleResetPassword = async (e) => {
-        e.preventDefault();
-        if (!email) {
-            setError('Please enter your email address first to reset password.');
-            return;
-        }
-        setError('');
-        setSuccess('');
-        setLoading(true);
-        try {
-            await resetPassword(email);
-            setSuccess('Password reset link sent to your email!');
-        } catch (err) {
-            setError('Failed to send reset email. Please check your email address.');
+            setError('Failed to login. Please check your credentials.');
         } finally {
             setLoading(false);
         }
@@ -57,20 +35,19 @@ const Login = () => {
             <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2.5rem' }}>
                 <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
                     <div style={{
-                        width: '60px', height: '60px', background: 'var(--gradient-primary)', borderRadius: '50%',
+                        width: '60px', height: '60px', background: 'var(--gradient-hover)', borderRadius: '16px',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem',
                         color: 'white', boxShadow: 'var(--shadow-lg)'
                     }}>
-                        <User size={28} />
+                        <BookOpen size={28} />
                     </div>
-                    <h2 style={{ color: 'var(--color-text-main)', marginBottom: '0.5rem', fontSize: '1.75rem' }}>Student Login</h2>
-                    <p style={{ fontSize: '1rem', color: 'var(--color-text-secondary)' }}>Welcome back to your learning journey</p>
+                    <h2 style={{ color: 'var(--color-text-main)', marginBottom: '0.5rem', fontSize: '1.75rem' }}>Instructor Login</h2>
+                    <p style={{ fontSize: '1rem', color: 'var(--color-text-secondary)' }}>Manage your courses and students</p>
                 </div>
 
                 {error && <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-danger)', padding: '1rem', borderRadius: 'var(--radius-sm)', marginBottom: '1.5rem', fontSize: '0.875rem', border: '1px solid currentColor' }}>{error}</div>}
-                {success && <div style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--color-success)', padding: '1rem', borderRadius: 'var(--radius-sm)', marginBottom: '1.5rem', fontSize: '0.875rem', border: '1px solid currentColor' }}>{success}</div>}
 
-                <form onSubmit={handleLogin}>
+                <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: '1.25rem' }}>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '500' }}>Email</label>
                         <div style={{ position: 'relative' }}>
@@ -80,7 +57,7 @@ const Login = () => {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="student@example.com"
+                                placeholder="instructor@example.com"
                                 style={{
                                     width: '100%',
                                     padding: '0.875rem 0.875rem 0.875rem 3rem',
@@ -96,21 +73,7 @@ const Login = () => {
                     <div style={{ marginBottom: '2rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                             <label style={{ fontSize: '0.9rem', fontWeight: '500' }}>Password</label>
-                            <button
-                                type="button"
-                                onClick={handleResetPassword}
-                                style={{
-                                    fontSize: '0.8rem',
-                                    color: 'var(--color-primary)',
-                                    fontWeight: '500',
-                                    background: 'none',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    padding: 0
-                                }}
-                            >
-                                Forgot?
-                            </button>
+                            <a href="#" style={{ fontSize: '0.8rem', color: 'var(--color-primary)', fontWeight: '500' }}>Forgot?</a>
                         </div>
                         <div style={{ position: 'relative' }}>
                             <Lock size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)' }} />
@@ -138,25 +101,17 @@ const Login = () => {
                         className="btn btn-primary"
                         style={{ width: '100%', marginBottom: '1.5rem', padding: '1rem', fontSize: '1rem' }}
                     >
-                        {loading ? 'Processing...' : 'Sign In'}
+                        {loading ? 'Logging in...' : 'Login as Instructor'}
                     </button>
                 </form>
 
-                <p style={{ textAlign: 'center', fontSize: '0.95rem', color: 'var(--color-text-secondary)', marginBottom: '2rem' }}>
-                    Don't have an account? <Link to="/register" style={{ color: 'var(--color-primary)', fontWeight: '600' }}>Create account</Link>
-                </p>
-
-                <div style={{ textAlign: 'center', fontSize: '0.875rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
-                    <p style={{ marginBottom: '0.5rem', fontWeight: '500' }}>Not a student?</p>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-                        <Link to="/instructor/login" style={{ color: 'var(--color-text-main)' }}>Instructor Login</Link>
-                        <span style={{ color: 'var(--color-border)' }}>|</span>
-                        <Link to="/admin/login" style={{ color: 'var(--color-text-main)' }}>Admin Login</Link>
-                    </div>
+                <div style={{ textAlign: 'center', fontSize: '0.95rem', paddingTop: '1.5rem', borderTop: '1px solid var(--color-border)' }}>
+                    <p style={{ marginBottom: '0.5rem', color: 'var(--color-text-secondary)' }}>Are you a student?</p>
+                    <Link to="/login" style={{ color: 'var(--color-primary)', fontWeight: '600' }}>Go to Student Login</Link>
                 </div>
             </div>
         </div>
     );
 };
 
-export default Login;
+export default InstructorLogin;
